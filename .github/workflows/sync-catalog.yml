@@ -1,0 +1,43 @@
+name: Sync Squarespace Catalog
+
+# Runs every 15 minutes and on manual trigger.
+# Pulls the latest catalog from Squarespace, commits catalog.json if it changed,
+# and pushes back to the repo. The Squarespace inject script auto-fetches the
+# new catalog from raw.githubusercontent.com on the next page load.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}  # Adds a "Run workflow" button in the GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch catalog from Squarespace
+        env:
+          SQUARESPACE_API_KEY: ${{ secrets.SQUARESPACE_API_KEY }}
+        run: node scripts/fetch-catalog.js
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet catalog.json; then
+            echo "No catalog changes."
+          else
+            git add catalog.json
+            git commit -m "chore: auto-sync catalog from Squarespace"
+            git push
+            echo "Catalog updated."
+          fi
