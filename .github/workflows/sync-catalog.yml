@@ -1,12 +1,12 @@
 name: Sync Squarespace Catalog
 
-# Runs every 15 minutes and on manual trigger.
+# Runs every 6 hours and on manual trigger.
 # Pulls the latest catalog from Squarespace, commits catalog.json if it changed,
 # and pushes back to the repo. The Squarespace inject script auto-fetches the
 # new catalog from raw.githubusercontent.com on the next page load.
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch: {}  # Adds a "Run workflow" button in the GitHub UI
 
 permissions:
