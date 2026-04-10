@@ -1,54 +1,55 @@
 <script>
 /*
- * Nutrivamos × Meta Commerce Checkout Bridge
+ * Nutrivamos x Meta Commerce Checkout Bridge
  *
- * This script lives in Squarespace Code Injection (Settings → Advanced →
- * Code Injection → HEADER). It runs on every page load.
+ * Lives in Squarespace Code Injection (Settings > Advanced > Code Injection > HEADER).
+ * Runs on every page load.
  *
- * What it does:
- *   When a customer arrives from Meta Commerce (Instagram/Facebook Shops)
- *   at https://www.nutrivamos.com/checkout?products=<uuid>:<qty>,...&coupon=<code>
- *   the script:
- *     1. Detects the Meta-checkout flow via the URL params
- *     2. Shows a "Loading your cart..." overlay
- *     3. Looks up each Meta product UUID in the catalog (fetched from GitHub)
- *     4. POSTs each item to Squarespace's internal cart endpoint
- *     5. Applies the coupon code (if provided)
- *     6. Redirects to /checkout with the cart now populated
- *
- * On normal /checkout visits (no `products` param) it does nothing.
- *
- * To update the product catalog: run `node scripts/fetch-catalog.js` and
- * `git push` from the project repo. The script auto-fetches the latest
- * catalog.json from GitHub on every load (with localStorage fallback).
+ * Flow:
+ *   1. Meta sends customer to /checkout?products=<uuid>:<qty>,...&coupon=<code>
+ *   2. Squarespace 302-redirects /checkout -> /cart when cart is empty, STRIPPING the query string
+ *   3. So we stash the raw query string in sessionStorage on the FIRST hit (any page)
+ *   4. On the subsequent /cart load, we recover it, POST items to Squarespace cart API,
+ *      apply coupon if present, then redirect to /checkout.
  */
 (function () {
   'use strict';
 
-  // ─── Configuration ────────────────────────────────────────────────────────
-  // GitHub raw URL for the product catalog. Update if you fork or rename.
   var CATALOG_URL = 'https://raw.githubusercontent.com/hcdonia/Nutrivamos-Middleware/main/catalog.json';
   var CATALOG_CACHE_KEY = 'nutrivamos_meta_catalog_v1';
+  var STASH_KEY = 'nutrivamos_meta_pending_v1';
   var FALLBACK_REDIRECT = '/shop';
 
-  // ─── Early exit guards ────────────────────────────────────────────────────
-  // Only run on /checkout and only if Meta sent product params.
-  if (!/\/checkout(\/|$|\?)/.test(window.location.pathname + window.location.search)) return;
-  var params = new URLSearchParams(window.location.search);
-  if (!params.has('products')) return;
+  var rawSearch = window.location.search;
+  var params = new URLSearchParams(rawSearch);
 
-  // ─── Loading overlay ──────────────────────────────────────────────────────
+  if (params.has('products')) {
+    // First hit: stash and continue. (Belt-and-suspenders in case Squarespace
+    // ever starts redirecting /cart and we need to recover params on a follow-up page.)
+    try { sessionStorage.setItem(STASH_KEY, rawSearch); } catch (e) {}
+  } else {
+    // No products in URL. Try to recover from sessionStorage, but only on /cart or /checkout.
+    var path = window.location.pathname;
+    if (!/^\/(cart|checkout)(\/|$)/.test(path)) return;
+    var stashed = '';
+    try { stashed = sessionStorage.getItem(STASH_KEY) || ''; } catch (e) {}
+    if (!stashed) return;
+    params = new URLSearchParams(stashed);
+    if (!params.has('products')) return;
+  }
+
+  // Loading overlay
   var overlay = document.createElement('div');
   overlay.id = 'meta-checkout-overlay';
   overlay.style.cssText = [
     'position:fixed', 'top:0', 'left:0', 'width:100vw', 'height:100vh',
     'background:#fff', 'z-index:2147483647',
     'display:flex', 'flex-direction:column', 'align-items:center', 'justify-content:center',
-    'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+    'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif',
     'color:#222', 'text-align:center', 'padding:20px'
   ].join(';');
   overlay.innerHTML =
-    '<div style="font-size:18px;margin-bottom:16px;">Loading your cart…</div>' +
+    '<div style="font-size:18px;margin-bottom:16px;">Loading your cart...</div>' +
     '<div id="meta-checkout-status" style="font-size:14px;color:#666;"></div>';
   function setStatus(text) {
     var el = document.getElementById('meta-checkout-status');
@@ -60,7 +61,6 @@
   }
   appendOverlayWhenReady();
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
   function getCrumb() {
     var m = document.cookie.match(/(?:^|;\s*)crumb=([^;]+)/);
     return m ? m[1] : '';
@@ -68,19 +68,22 @@
 
   function uuid() {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    // Fallback for older browsers
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       var r = (Math.random() * 16) | 0;
       return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
     });
   }
 
+  function clearStash() {
+    try { sessionStorage.removeItem(STASH_KEY); } catch (e) {}
+  }
+
   function failHard(reason) {
     console.error('[meta-checkout]', reason);
+    clearStash();
     window.location.replace(FALLBACK_REDIRECT);
   }
 
-  // ─── Catalog fetch (with localStorage fallback) ───────────────────────────
   function loadCatalog() {
     return fetch(CATALOG_URL, { cache: 'no-cache' })
       .then(function (res) {
@@ -101,7 +104,6 @@
       });
   }
 
-  // ─── Parse Meta's params ──────────────────────────────────────────────────
   function parseProducts(raw) {
     if (!raw) return [];
     return raw.split(',')
@@ -114,7 +116,6 @@
       .filter(function (item) { return item.id && item.qty > 0; });
   }
 
-  // ─── Squarespace cart endpoints (verified from HAR captures) ──────────────
   function addItemToCart(itemId, sku, qty) {
     var crumb = getCrumb();
     return fetch('/api/commerce/shopping-cart/entries?crumb=' + encodeURIComponent(crumb), {
@@ -154,7 +155,6 @@
     });
   }
 
-  // ─── Main flow ────────────────────────────────────────────────────────────
   var requestedItems = parseProducts(params.get('products'));
   var couponCode = (params.get('coupon') || '').trim();
 
@@ -162,7 +162,6 @@
 
   loadCatalog()
     .then(function (catalog) {
-      // Resolve each Meta variant UUID against the catalog.
       var resolved = [];
       var unmapped = [];
       requestedItems.forEach(function (item) {
@@ -173,10 +172,8 @@
       if (unmapped.length) console.warn('[meta-checkout] Unmapped variant UUIDs:', unmapped);
       if (resolved.length === 0) return failHard('No requested items resolved against catalog');
 
-      setStatus('Adding ' + resolved.length + ' item' + (resolved.length === 1 ? '' : 's') + ' to your cart…');
+      setStatus('Adding ' + resolved.length + ' item' + (resolved.length === 1 ? '' : 's') + ' to your cart...');
 
-      // Add items sequentially so we get back a stable cartToken from the
-      // first successful response and can reuse it for the coupon call.
       var cartToken = null;
       var failed = [];
       var sequence = Promise.resolve();
@@ -203,10 +200,9 @@
       });
     })
     .then(function (cartToken) {
-      if (cartToken === undefined) return; // failHard already redirected
-      // Apply coupon if one was provided.
+      if (cartToken === undefined) return;
       if (couponCode && cartToken) {
-        setStatus('Applying discount code…');
+        setStatus('Applying discount code...');
         return applyCoupon(cartToken, couponCode)
           .then(function () {
             console.log('[meta-checkout] Coupon applied:', couponCode);
@@ -220,14 +216,11 @@
       return null;
     })
     .then(function (couponResult) {
-      // Clean URL so back-button doesn't re-trigger the loop.
+      clearStash();
       try { history.replaceState({}, '', '/checkout'); } catch (e) {}
 
-      // If coupon failed to auto-apply, show it on the overlay so the user
-      // can copy/paste it on the checkout page.
       if (couponResult === 'failed' && couponCode) {
         setStatus('Use code: ' + couponCode + ' at checkout');
-        // Brief pause so the user actually sees the code.
         setTimeout(function () { window.location.replace('/checkout'); }, 2500);
         return;
       }
