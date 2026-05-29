@@ -1,4 +1,19 @@
 {
+  "aadd523a-5d96-497d-a046-b515aee2b122": {
+    "itemId": "68f431ae37dfbf0434a084c8",
+    "sku": "SQ0574281",
+    "name": "Complete Ritual — with Avena y Miel"
+  },
+  "1f121c7d-a3fb-4322-a274-74f0f6e6c94f": {
+    "itemId": "68f431ae37dfbf0434a084c8",
+    "sku": "SQ1262621",
+    "name": "Complete Ritual — with Mandala"
+  },
+  "b22ed14f-10a3-467e-83c2-5aaa0eb0a3b2": {
+    "itemId": "68f431ae37dfbf0434a084c8",
+    "sku": "SQ0895046",
+    "name": "Complete Ritual — with BOTH CLEANSERS"
+  },
   "f7059820-2045-4fbc-9a73-8cf1189fabe9": {
     "itemId": "66730bf149eb5143d05ab55c",
     "sku": "SQ6279198",
@@ -43,20 +58,5 @@
     "itemId": "68896d055e392857da77e0de",
     "sku": "SQ5239725",
     "name": "MY SKIN BUDDY BOOST — White"
-  },
-  "aadd523a-5d96-497d-a046-b515aee2b122": {
-    "itemId": "68f431ae37dfbf0434a084c8",
-    "sku": "SQ0574281",
-    "name": "Complete Ritual — with Avena y Miel"
-  },
-  "1f121c7d-a3fb-4322-a274-74f0f6e6c94f": {
-    "itemId": "68f431ae37dfbf0434a084c8",
-    "sku": "SQ1262621",
-    "name": "Complete Ritual — with Mandala"
-  },
-  "b22ed14f-10a3-467e-83c2-5aaa0eb0a3b2": {
-    "itemId": "68f431ae37dfbf0434a084c8",
-    "sku": "SQ0895046",
-    "name": "Complete Ritual — with BOTH CLEANSERS"
   }
 }
