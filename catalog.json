@@ -1,4 +1,14 @@
 {
+  "5b8aea85-fd23-49c8-9f8f-fdb9692ec466": {
+    "itemId": "665e0f917bdc0c5c08c195c4",
+    "sku": "SQ0742118",
+    "name": "The Dew. It. All. Serum"
+  },
+  "8aec2880-05c4-42c6-b652-17d082ab9529": {
+    "itemId": "67e83c156d2b5904d0d7cad2",
+    "sku": "SQ2884627",
+    "name": "GoldieLux Mushroom Blend Peptide Moisturizer"
+  },
   "aadd523a-5d96-497d-a046-b515aee2b122": {
     "itemId": "68f431ae37dfbf0434a084c8",
     "sku": "SQ0574281",
@@ -24,11 +34,6 @@
     "sku": "SQ7358622",
     "name": "Protector Solar TINTED SPF 40"
   },
-  "5b8aea85-fd23-49c8-9f8f-fdb9692ec466": {
-    "itemId": "665e0f917bdc0c5c08c195c4",
-    "sku": "SQ0742118",
-    "name": "The Dew. It. All. Serum"
-  },
   "d860f327-cd1c-4b8e-a6d1-eb4d3a2a2565": {
     "itemId": "667ef50f687af43a7a5818e8",
     "sku": "SQ1260512",
@@ -38,11 +43,6 @@
     "itemId": "667efc1dcbd5e2405316ca0b",
     "sku": "SQ1260515",
     "name": "Aloe y Rosa Toner"
-  },
-  "8aec2880-05c4-42c6-b652-17d082ab9529": {
-    "itemId": "67e83c156d2b5904d0d7cad2",
-    "sku": "SQ2884627",
-    "name": "GoldieLux Mushroom Blend Peptide Moisturizer"
   },
   "7f45cf4f-1f1d-4b2b-aa5e-bb5c29490e05": {
     "itemId": "68cdc741466b913bd11f795a",
