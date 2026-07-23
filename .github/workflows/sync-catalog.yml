@@ -41,3 +41,25 @@ jobs:
             git push
             echo "Catalog updated."
           fi
+
+      # GitHub auto-disables a scheduled workflow after 60 days with no repo
+      # activity. The catalog can go months without changing, so this heartbeat
+      # makes one tiny commit if the repo hasn't been touched in ~50 days, which
+      # keeps this workflow alive on its own. Fires at most once every ~50 days.
+      - name: Keep workflow alive (heartbeat)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          last=$(git log -1 --format=%ct)
+          now=$(date +%s)
+          days=$(( (now - last) / 86400 ))
+          echo "Days since last commit: $days"
+          if [ "$days" -ge 50 ]; then
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/last-activity
+            git add .github/last-activity
+            git commit -m "chore: workflow keepalive heartbeat [skip ci]"
+            git push
+            echo "Heartbeat committed."
+          else
+            echo "Repo is active; no heartbeat needed."
+          fi
