@@ -1,4 +1,14 @@
 {
+  "8aec2880-05c4-42c6-b652-17d082ab9529": {
+    "itemId": "67e83c156d2b5904d0d7cad2",
+    "sku": "SQ2884627",
+    "name": "GoldieLux Peptide Moisturizer"
+  },
+  "7f45cf4f-1f1d-4b2b-aa5e-bb5c29490e05": {
+    "itemId": "68cdc741466b913bd11f795a",
+    "sku": "SQ6041575",
+    "name": "Mandala Active Face Wash"
+  },
   "429cc990-9a6c-43a3-8e2e-17aa8d663a77": {
     "itemId": "68896d055e392857da77e0de",
     "sku": "SQ5067695",
@@ -33,15 +43,5 @@
     "itemId": "667ef50f687af43a7a5818e8",
     "sku": "SQ1260512",
     "name": "Avena y Miel Gentle Cleanser"
-  },
-  "7f45cf4f-1f1d-4b2b-aa5e-bb5c29490e05": {
-    "itemId": "68cdc741466b913bd11f795a",
-    "sku": "SQ6041575",
-    "name": "Mandala Active Face Wash"
-  },
-  "8aec2880-05c4-42c6-b652-17d082ab9529": {
-    "itemId": "67e83c156d2b5904d0d7cad2",
-    "sku": "SQ2884627",
-    "name": "GoldieLux 4 Mushroom Peptide Moisturizer"
   }
 }
